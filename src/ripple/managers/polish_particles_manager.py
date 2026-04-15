@@ -1,12 +1,11 @@
 """Manager for polishing particles."""
 
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any
 
 import einops
 import pandas as pd
 import torch
 import yaml
-from pydantic import ConfigDict
 
 from ripple.config import (
     ComputationalConfig,
@@ -26,7 +25,6 @@ if TYPE_CHECKING:
 class PolishParticlesManager(BaseModelRIPPLE):
     """Manager for aligning frames of a cryo-EM movie."""
 
-    model_config: ClassVar = ConfigDict(arbitrary_types_allowed=True)
     computational_config: ComputationalConfig
     movie_config: MovieConfig
     output_config: OutputConfig

@@ -1,9 +1,8 @@
 """Manager for aligning frames of a cryo-EM movie."""
 
-from typing import TYPE_CHECKING, Any, ClassVar, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import torch
-from pydantic import ConfigDict
 from torch_motion_correction import DeformationField
 
 from ripple.config import (
@@ -23,7 +22,6 @@ if TYPE_CHECKING:
 class AlignFramesManager(BaseModelRIPPLE):
     """Manager for aligning frames of a cryo-EM movie."""
 
-    model_config: ClassVar = ConfigDict(arbitrary_types_allowed=True)
     computational_config: ComputationalConfig
     movie_config: MovieConfig
     output_config: OutputConfig
