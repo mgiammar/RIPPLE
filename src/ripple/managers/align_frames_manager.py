@@ -75,7 +75,7 @@ class AlignFramesManager(BaseModelRIPPLE):
             "patch_sampling": self.alignment_config.as_patch_sampling_config,
             "fourier_filter": self.alignment_config.as_fourier_filter_config,
             "optimization": self.alignment_config.as_optimization_config,
-            "device": self.computational_config.gpu_id,
+            "device": self.computational_config.gpu_device,
         }
 
     def align_frames_last_pass(

@@ -60,7 +60,7 @@ def load_missing_tensors(
         Tuple of (movie, gain_map, dark_map, initial_deformation_field), with
         missing ones loaded from config.
     """
-    device = computational_config.gpu_id
+    device = computational_config.gpu_device
 
     if movie is None:
         movie = movie_config.movie

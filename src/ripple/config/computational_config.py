@@ -3,13 +3,15 @@
 from typing import Annotated
 
 import torch
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from ripple.utils.custom_types import BaseModelRIPPLE
 
 # Type alias for non-negative integer
 NonNegativeInt = Annotated[int, Field(ge=0)]
 
 
-class ComputationalConfig(BaseModel):
+class ComputationalConfig(BaseModelRIPPLE):
     """Serialization of computational resources allocated for RIPPLE.
 
     Attributes

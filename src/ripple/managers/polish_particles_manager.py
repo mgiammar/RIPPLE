@@ -84,7 +84,7 @@ class PolishParticlesManager(BaseModelRIPPLE):
             "trajectory_kwargs": trajectory_kwargs,
             "grid_type": self.alignment_config.grid_type,
             "voltage": voltage,
-            "device": self.computational_config.gpu_id,
+            "device": self.computational_config.gpu_device,
             "loss_metric": self.alignment_config.loss_metric,
             "min_snr": self.alignment_config.min_snr,
             "best_n": self.alignment_config.best_n,
