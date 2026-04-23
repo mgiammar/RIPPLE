@@ -107,12 +107,28 @@ class AlignFramesConfig(BaseAlignmentConfig):
     frequency_range: tuple[float, float]
         Frequency range for filtering in Angstroms. First value must be
         larger than the second value. Default is (300, 10).
+    early_stopping: bool
+        Whether to stop optimization early when the loss plateaus.
+        Default is False.
+    early_stopping_patience: int
+        Number of consecutive steps without sufficient improvement before
+        stopping. Default is 5.
+    early_stopping_window_size: int
+        Number of recent loss values averaged to form the smoothed loss used
+        for plateau detection. Default is 3.
+    early_stopping_tolerance: float
+        Minimum relative improvement in the smoothed loss that resets the
+        patience counter. Default is 1e-5.
     """
 
     patch_shape: tuple[PositiveInt, PositiveInt] = (1024, 1024)
     loss_type: Literal["mse", "cc", "ncc"] = "mse"
     b_factor: float = 500
     frequency_range: tuple[PositiveFloat, PositiveFloat] = (300, 10)
+    early_stopping: bool = False
+    early_stopping_patience: PositiveInt = 5
+    early_stopping_window_size: PositiveInt = 3
+    early_stopping_tolerance: float = 1e-5
 
     @field_validator("frequency_range")  # type: ignore[misc]
     @classmethod
@@ -167,7 +183,8 @@ class AlignFramesConfig(BaseAlignmentConfig):
     def as_optimization_config(self) -> MotionOptimizationConfig:
         """Build a :class:`~torch_motion_correction.OptimizationConfig`.
 
-        Extends the base implementation to include ``loss_type``.
+        Extends the base implementation to include ``loss_type`` and early
+        stopping parameters.
         """
         return MotionOptimizationConfig(
             max_iterations=self.max_iterations,
@@ -175,6 +192,10 @@ class AlignFramesConfig(BaseAlignmentConfig):
             loss_type=self.loss_type,
             grid_type=self.grid_type,
             optimizer_kwargs={"lr": self.learning_rate},
+            early_stopping=self.early_stopping,
+            early_stopping_patience=self.early_stopping_patience,
+            early_stopping_window_size=self.early_stopping_window_size,
+            early_stopping_tolerance=self.early_stopping_tolerance,
         )
 
 
