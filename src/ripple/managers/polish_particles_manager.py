@@ -187,7 +187,7 @@ class PolishParticlesManager(BaseModelRIPPLE):
                 optimize_particle_df_path=opt_config.optimize_particle_df_path,
                 pre_exposure=core_kwargs["pre_exposure"],
                 fluence_per_frame=core_kwargs["fluence_per_frame"],
-                motiomax_iterations=opt_config.motiomax_iterations,
+                motion_iterations=opt_config.motiomax_iterations,
                 sigma_iterations=opt_config.sigma_iterations,
                 particle_batch_size=particle_batch_size,
                 particle_indices=core_kwargs["particle_indices"],

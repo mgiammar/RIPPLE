@@ -11,7 +11,6 @@ from torch_motion_correction import (
 from torch_motion_correction import OptimizationConfig as MotionOptimizationConfig
 
 from ripple.utils.custom_types import BaseModelRIPPLE
-from ripple.utils.data_io import load_deformation_field
 
 # Type alias for positive integer
 PositiveInt = Annotated[int, Field(gt=0)]
@@ -68,9 +67,9 @@ class BaseAlignmentConfig(BaseModelRIPPLE):
         if self.deformation_field_path is None:
             return None
 
-        data = load_deformation_field(self.deformation_field_path)
-
-        return DeformationField(data=data, grid_type=self.grid_type)
+        return DeformationField.from_csv(
+            self.deformation_field_path, grid_type=self.grid_type
+        )
 
     @property
     def as_optimization_config(self) -> MotionOptimizationConfig:
