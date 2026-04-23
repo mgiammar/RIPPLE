@@ -43,7 +43,7 @@ def patch_sampling():
 @pytest.fixture
 def fast_optimization():
     """Optimization config with few iterations for fast tests."""
-    return MotionOptimizationConfig(n_iterations=5)
+    return MotionOptimizationConfig(max_iterations=5)
 
 
 def test_core_align_frames_basic(
@@ -157,7 +157,7 @@ def test_core_align_frames_zero_iterations(
     sample_movie, sample_deformation_field, patch_sampling
 ):
     """Test core_align_frames with zero iterations."""
-    zero_optimization = MotionOptimizationConfig(n_iterations=0)
+    zero_optimization = MotionOptimizationConfig(max_iterations=0)
 
     corrected_movie, updated_deformation_field, movie_prepared, _ = core_align_frames(
         movie=sample_movie,

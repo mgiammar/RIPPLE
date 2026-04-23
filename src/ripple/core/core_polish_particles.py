@@ -11,10 +11,6 @@ import torch
 import tqdm
 from torch_cubic_spline_grids import CubicBSplineGrid3d, CubicCatmullRomGrid3d
 from torch_motion_correction import correct_motion, correct_motion_two_grids
-from torch_motion_correction.data_io import write_deformation_field_to_csv
-from torch_motion_correction.deformation_field_utils import (
-    resample_deformation_field,
-)
 from torch_motion_correction.optimization_state import OptimizationTracker
 
 from ripple.utils.data_io import load_template_volume_from_config
@@ -47,7 +43,7 @@ def core_polish_particles(
     deformation_field_resolution: tuple[int, int, int],  # (nt, nh, nw)
     pre_exposure: float = 0.0,
     fluence_per_frame: float = 1.0,
-    n_iterations: int = 100,
+    max_iterations: int = 100,
     optimizer_kwargs: dict[str, Any] | None = None,
     grid_type: Literal["catmull_rom", "bspline"] = "catmull_rom",
     correlation_batch_size: int = 20,
@@ -95,7 +91,7 @@ def core_polish_particles(
         Pre-exposure time in seconds.
     fluence_per_frame: float
         Fluence per frame in electrons per pixel.
-    n_iterations: int
+    max_iterations: int
         Number of iterations for the optimization process.
     optimizer_kwargs: dict[str, Any] | None
         Keyword arguments for the optimizer.
@@ -168,7 +164,7 @@ def core_polish_particles(
         "refine_config_path": refine_config_path,
         "pre_exposure": pre_exposure,
         "fluence_per_frame": fluence_per_frame,
-        "n_iterations": n_iterations,
+        "max_iterations": max_iterations,
         "optimizer_kwargs": optimizer_kwargs,
         "correlation_batch_size": correlation_batch_size,
         "particle_indices": particle_indices,
@@ -236,7 +232,7 @@ def estimate_local_motion_2dtm_bayesian(
     refine_config_path: str,
     pre_exposure: float = 0.0,
     fluence_per_frame: float = 1.0,
-    n_iterations: int = 100,
+    max_iterations: int = 100,
     optimizer_kwargs: dict[str, Any] | None = None,
     grid_type: Literal["catmull_rom", "bspline"] = "catmull_rom",
     correlation_batch_size: int = 20,
@@ -298,7 +294,7 @@ def estimate_local_motion_2dtm_bayesian(
         Batch size for the correlation. Default is 20.
     device: torch.device = None,
         Device to perform computation on. If None, uses the device of the input image.
-    n_iterations: int = 100,
+    max_iterations: int = 100,
         Number of iterations for the optimization process. Default is 100.
     optimizer_kwargs: dict[str, Any] | None = None,
         Keyword arguments for the optimizer. If None, uses defaults.
@@ -409,14 +405,13 @@ def estimate_local_motion_2dtm_bayesian(
         amsgrad=False,
     )
 
-    # "Training" loop going over all patched n_iterations times
-    pbar = tqdm.tqdm(range(n_iterations))
+    # "Training" loop going over all patched max_iterations times
+    pbar = tqdm.tqdm(range(max_iterations))
 
     for iter_idx in pbar:
         if save_intermediate_fields:
-            write_deformation_field_to_csv(
-                new_deformation_field.data,
-                f"{intermediate_fields_dir}/new_deformation_field_{iter_idx}.csv",
+            new_deformation_field.to_csv(
+                f"{intermediate_fields_dir}/new_deformation_field_{iter_idx}.csv"
             )
         torch.cuda.empty_cache()
 
@@ -534,7 +529,7 @@ def estimate_local_motion_2dtm_particles_bayesian(
     refine_config_path: str,
     pre_exposure: float = 0.0,
     fluence_per_frame: float = 1.0,
-    n_iterations: int = 100,
+    max_iterations: int = 100,
     optimizer_kwargs: dict[str, Any] | None = None,
     correlation_batch_size: int = 20,
     particle_batch_size: int = 102,
@@ -583,7 +578,7 @@ def estimate_local_motion_2dtm_particles_bayesian(
         Dose per frame in electrons per pixel. Default is 1.0.
     device: torch.device, optional
         Device to perform computation on. If None, uses the device of the input image.
-    n_iterations: int
+    max_iterations: int
         Number of iterations for the optimization process. Default is 100.
     optimizer_kwargs: dict[str, Any] | None = None,
         Keyword arguments for the optimizer. If None, uses defaults.
@@ -679,8 +674,8 @@ def estimate_local_motion_2dtm_particles_bayesian(
         amsgrad=False,
     )
 
-    # "Training" loop going over all patched n_iterations times
-    pbar = tqdm.tqdm(range(n_iterations))
+    # "Training" loop going over all patched max_iterations times
+    pbar = tqdm.tqdm(range(max_iterations))
 
     # Create batch configs once before optimization loop
     # This will work with the already-filtered CSV
@@ -724,9 +719,8 @@ def estimate_local_motion_2dtm_particles_bayesian(
     try:
         for iter_idx in pbar:
             if save_intermediate_fields:
-                write_deformation_field_to_csv(
-                    deformation_field.data,
-                    f"{intermediate_fields_dir}/particle_deformation_field_{iter_idx}.csv",
+                deformation_field.to_csv(
+                    f"{intermediate_fields_dir}/particle_deformation_field_{iter_idx}.csv"
                 )
 
             torch.cuda.empty_cache()
@@ -953,14 +947,13 @@ def _setup_estimate_motion(
         )
     else:
         # Get the resampled deformation field
-        deformation_field_data = resample_deformation_field(
-            deformation_field=initial_deformation_field,
+        deformation_field_data = initial_deformation_field.resample(
             target_resolution=(
                 deformation_field_resolution[0],
                 deformation_field_resolution[1],
                 deformation_field_resolution[2],
             ),
-        )
+        ).data
         deformation_field_data = deformation_field_data - torch.mean(
             deformation_field_data, dim=(1, 2, 3), keepdim=True
         )

@@ -74,7 +74,7 @@ alignment_config:
   deformation_field_path: null
   
   # Number of optimization iterations (default: 100)
-  n_iterations: 100
+  max_iterations: 100
   
   # Shape of patch in pixels (width, height) (default: [1024, 1024])
   patch_shape: [1024, 1024]
